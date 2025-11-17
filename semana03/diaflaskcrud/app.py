@@ -1,36 +1,89 @@
-from flask import flask, request
+from flask import Flask, request
 
-app = flask(__name__)
+app = Flask(__name__)
 
-new_users = {
-    'id': 1,
-    'name': 'John Doe',
-    'email': 'johndoe@example.com',
-    'password': 'password'
-}
+usersList = []
 
 @app.route('/')
-def index():
-    return 'Hello World!'
+def home():
+    return 'Hello World! 🐍'
 
 @app.route('/users', methods=['GET', 'POST'])
 def users():
     method = request.method
-    if method == 'GET':
-        pass
-    elif method == 'POST':
-        pass
+    if method == 'POST':
+        # Crear un nuevo usuario
+        json = request.get_json()
+        json['id'] = len(usersList) + 1
+        usersList.append(json)
+        return {
+            'ok': True,
+            'message': 'Usuario creado correctamente',
+            'data': json
+        }
+    
+    elif method == 'GET':
+        # Obtener todos los usuarios
+        return {
+            'ok': True,
+            'message': 'Lista de usuarios obtenida correctamente',
+            'data': usersList
+        }
 
 @app.route('/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def users(id):
+def user(id):
     method = request.method
     if method == 'GET':
-        pass
+        # Obtener un usuario
+        for user in usersList:
+            if user['id'] == id:
+                return {
+                    'ok': True,
+                    'message': 'Usuario obtenido correctamente',
+                    'data': user
+                }, 200 
+        return {
+            'ok': False,
+            'message': 'Usuario no encontrado',
+            'data': None
+        }, 404
+            
     elif method == 'PUT':
-        pass
+        # Actualizar un usuario
+        json = request.get_json()
+
+        for user in usersList:
+            if user['id'] == id:
+                user['name'] = json['name']
+                user['email'] = json['email']
+                user['password'] = json['password']
+                return {
+                    'ok': True,
+                    'message': 'Usuario actualizado correctamente',
+                    'data': user
+                    }, 200
+        return {
+            'ok': False,
+            'message': 'Usuario no encontrado',
+            'data': None
+        }, 404
+        
     elif method == 'DELETE':
-        pass
+        # Eliminar un usuario
+        for user in usersList:
+            if user['id'] == id:
+                usersList.remove(user)
+                return {
+                    'ok': True,
+                    'message': 'Usuario eliminado correctamente',
+                    'data': None
+                    }, 200
+        return {
+            'ok': False,
+            'message': 'Usuario no encontrado',
+            'data': None
+            }, 404
+    
     
 if __name__ == '__main__':
     app.run(debug=True)
-
